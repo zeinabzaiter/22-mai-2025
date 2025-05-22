@@ -1,5 +1,3 @@
-... # contenu précédent intact ...
-
 # Onglet 1: Vue générale
 with tabs[0]:
     st.subheader("Bactéries suivies en 2024")
@@ -13,12 +11,13 @@ with tabs[1]:
     selected_pheno = st.selectbox("Choisir un phénotype", pheno_columns)
 
     try:
-        Q1 = phenotypes[selected_pheno].astype(float).quantile(0.25)
-        Q3 = phenotypes[selected_pheno].astype(float).quantile(0.75)
+        col_values = pd.to_numeric(phenotypes[selected_pheno], errors='coerce').dropna()
+        Q1 = col_values.quantile(0.25)
+        Q3 = col_values.quantile(0.75)
         IQR = Q3 - Q1
         tukey_threshold = Q3 + 1.5 * IQR
 
-        phenotypes['Alarme'] = phenotypes[selected_pheno].astype(float) > tukey_threshold
+        phenotypes['Alarme'] = pd.to_numeric(phenotypes[selected_pheno], errors='coerce') > tukey_threshold
 
         fig = px.line(
             phenotypes,
@@ -45,7 +44,6 @@ with tabs[1]:
     except Exception as e:
         st.error(f"Erreur lors du traitement du phénotype {selected_pheno} : {e}")
 
-
 # Onglet 3: Antibiotiques Staph aureus
 with tabs[2]:
     st.subheader("Évolution des Résistances aux Antibiotiques - Staphylococcus aureus")
@@ -53,15 +51,16 @@ with tabs[2]:
     selected_ab = st.selectbox("Choisir un antibiotique", ab_columns)
 
     try:
-        Q1 = tests_semaine[selected_ab].astype(float).quantile(0.25)
-        Q3 = tests_semaine[selected_ab].astype(float).quantile(0.75)
+        col_values = pd.to_numeric(tests_semaine[selected_ab], errors='coerce').dropna()
+        Q1 = col_values.quantile(0.25)
+        Q3 = col_values.quantile(0.75)
         IQR = Q3 - Q1
         tukey_threshold = Q3 + 1.5 * IQR
 
         if selected_ab.upper().startswith("VAN"):
-            tests_semaine['Alarme'] = tests_semaine[selected_ab].astype(float) > 0
+            tests_semaine['Alarme'] = pd.to_numeric(tests_semaine[selected_ab], errors='coerce') > 0
         else:
-            tests_semaine['Alarme'] = tests_semaine[selected_ab].astype(float) > tukey_threshold
+            tests_semaine['Alarme'] = pd.to_numeric(tests_semaine[selected_ab], errors='coerce') > tukey_threshold
 
         fig_ab = px.line(
             tests_semaine,
@@ -96,12 +95,13 @@ with tabs[3]:
     selected_other_ab = st.selectbox("Choisir un antibiotique parmi les autres", other_ab_columns)
 
     try:
-        Q1 = other_ab[selected_other_ab].astype(float).quantile(0.25)
-        Q3 = other_ab[selected_other_ab].astype(float).quantile(0.75)
+        col_values = pd.to_numeric(other_ab[selected_other_ab], errors='coerce').dropna()
+        Q1 = col_values.quantile(0.25)
+        Q3 = col_values.quantile(0.75)
         IQR = Q3 - Q1
         tukey_threshold = Q3 + 1.5 * IQR
 
-        other_ab['Alarme'] = other_ab[selected_other_ab].astype(float) > tukey_threshold
+        other_ab['Alarme'] = pd.to_numeric(other_ab[selected_other_ab], errors='coerce') > tukey_threshold
 
         fig_other = px.line(
             other_ab,
@@ -127,6 +127,7 @@ with tabs[3]:
 
     except Exception as e:
         st.error(f"Erreur lors du traitement de l'antibiotique {selected_other_ab} : {e}")
+
 # Onglet 5: Alertes par Service
 with tabs[4]:
     st.subheader("Alertes par Service - Staphylococcus aureus")
@@ -141,11 +142,12 @@ with tabs[4]:
             .apply(lambda x: (x == 'R').mean() * 100).reset_index()
         grouped.columns = ['Semaine', 'Service', 'Resistance (%)']
 
-        Q1 = grouped['Resistance (%)'].quantile(0.25)
-        Q3 = grouped['Resistance (%)'].quantile(0.75)
+        col_values = pd.to_numeric(grouped['Resistance (%)'], errors='coerce').dropna()
+        Q1 = col_values.quantile(0.25)
+        Q3 = col_values.quantile(0.75)
         IQR = Q3 - Q1
         tukey_threshold = Q3 + 1.5 * IQR
-        grouped['Alarme'] = grouped['Resistance (%)'] > tukey_threshold
+        grouped['Alarme'] = pd.to_numeric(grouped['Resistance (%)'], errors='coerce') > tukey_threshold
 
         st.markdown("### Graphique interactif par service")
         fig_alertes = px.scatter(grouped, x='Semaine', y='Resistance (%)', color='Service', symbol='Alarme',
