@@ -1,13 +1,14 @@
-... # contenu précédent intact ...
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+
+# ✅ Doit être ici, immédiatement après les imports !
 st.set_page_config(page_title="Surveillance RAM - Staph aureus", layout="wide")
 
-
-# -------- Chargement des données --------
 @st.cache_data
+def load_data():
+    ...
+
 
 def load_data():
     staph_data = pd.read_excel("staph aureus hebdomadaire excel.xlsx")
