@@ -55,3 +55,30 @@ with tabs[1]:
         st.markdown(f"Seuil d'alerte (règle de Tukey) pour {selected_pheno} : **{tukey_threshold:.2f}%**")
     except Exception as e:
         st.error(f"Erreur lors du traitement du phénotype {selected_pheno} : {e}")
+
+# Onglet 3: Antibiotiques Staph aureus
+with tabs[2]:
+    st.subheader("Évolution des Résistances aux Antibiotiques - Staphylococcus aureus")
+    ab_columns = [col for col in tests_semaine.columns if col.lower() not in ['semaine', 'week']]
+    selected_ab = st.selectbox("Choisir un antibiotique", ab_columns)
+    try:
+        col_values = pd.to_numeric(tests_semaine[selected_ab], errors='coerce').dropna()
+        Q1 = col_values.quantile(0.25)
+        Q3 = col_values.quantile(0.75)
+        IQR = Q3 - Q1
+        tukey_threshold = Q3 + 1.5 * IQR
+        if selected_ab.upper().startswith("VAN"):
+            tests_semaine['Alarme'] = pd.to_numeric(tests_semaine[selected_ab], errors='coerce') > 0
+        else:
+            tests_semaine['Alarme'] = pd.to_numeric(tests_semaine[selected_ab], errors='coerce') > tukey_threshold
+        fig_ab = px.line(tests_semaine, x='Semaine', y=selected_ab, title=f"% Résistance - {selected_ab}",
+                         markers=True, labels={selected_ab: "% de résistance"},
+                         hover_data={"Semaine": True, selected_ab: True})
+        alertes_ab = tests_semaine[tests_semaine['Alarme'] == True]
+        fig_ab.add_scatter(x=alertes_ab['Semaine'], y=alertes_ab[selected_ab], mode='markers',
+                           marker=dict(color='red', size=10), name='Alarme')
+        st.plotly_chart(fig_ab)
+        seuil_info = "1 cas = alarme" if selected_ab.upper().startswith("VAN") else f"Seuil Tukey : **{tukey_threshold:.2f}%**"
+        st.markdown(f"Critère d'alarme pour {selected_ab} : {seuil_info}")
+    except Exception as e:
+        st.error(f"Erreur lors du traitement de l'antibiotique {selected_ab} : {e}")
