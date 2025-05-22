@@ -3,6 +3,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+st.set_page_config(page_title="Surveillance RAM - Staph aureus", layout="wide")
+
 
 # -------- Chargement des données --------
 @st.cache_data
